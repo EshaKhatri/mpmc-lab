@@ -1,0 +1,54 @@
+.MODEL SMALL
+
+DISPLAY MACRO MSG
+        LEA DX,MSG
+        MOV AH,09H
+        INT 21H
+ENDM
+
+.DATA
+LIST DB 01H, 05H, 10H, 17H,24H,32H
+NUMBER EQU ($-LIST)
+KEY DB 06H
+MSG1 0DH, 0AH, "ELEMENT FOUND IN THE LIST $"
+MSG2 0DH, 0AH, "ELEMENT NOT FOUND IN THE LIST $"
+
+.CODE
+START:  MOV DS,@DATA
+        MOV AX,DS
+
+        MOV CH,NUMBER-1
+        MOV CL,00
+
+AGAIN:  MOV SI,OFFSET LIST
+        XOR AX,AX
+        MOV BP,AX
+        MOV AL,DS:[BP][SI]
+        CMP AL,KEY
+        JE SUCCESS
+        JC INCLOW
+        MOV CH,BH
+        DEC CH
+        JMP AGAIN
+
+INCLOW: MOV CL,BL
+        INC CL
+        JMP AGAIN
+
+SUCCESS:MOV AL,KEY
+        MOV DL,AL
+        MOV AH,02H
+        INT 21H
+        DISPLAY MSG1
+        JMP FINAL
+
+FAILED: MOV AL,KEY
+        ADD AL,30H
+        MOV DL,AL
+        MOV AH,02H
+        INT 21H
+        DISPLAY MSG2
+
+FINAL:  MOV AH,4CH
+        INT 21H
+END START
